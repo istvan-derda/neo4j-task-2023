@@ -67,6 +67,6 @@ Add publishedIn Edges
 CALL apoc.load.json('file:///dblp-ref-3.json') YIELD value
 MATCH (p:Publication) WHERE p.id = value.id
 MATCH (v:Venue) WHERE v.name = value.venue
-MERGE (p)-[:publishedIn]->(v);
+CREATE (p)-[:publishedIn]->(v);
 ```
 
