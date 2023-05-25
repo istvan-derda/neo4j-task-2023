@@ -1,6 +1,6 @@
 # NoSQL Neo4j task
 
-## Helper Scripts
+## Setup
 
 **Setup empty neo4j database in docker container**
 
@@ -14,6 +14,13 @@
 
 - run `./nuke.sh` to delete the neo4j container and the database
 - run `./setup.sh` to set up a clean empty neo4j database
+
+**Interactive shell**
+
+Open [localhost:7474/](localhost:7474/) in your browser to run the queries shown below.
+
+- username: neo4j
+- password: datenbanken
 
 ## Queries
 
