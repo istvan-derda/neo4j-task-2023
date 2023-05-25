@@ -1,4 +1,4 @@
-docker run -p 7474:7474 -p 7687:7687 \
+docker run -d -p 7474:7474 -p 7687:7687 \
 --name neo4j --user="$(id -u):$(id -g)" \
 -e apoc.export.file.enabled=true \
 -e apoc.import.file.enabled=true \
@@ -8,5 +8,8 @@ docker run -p 7474:7474 -p 7687:7687 \
 --volume=$HOME/git/nosql2023/import:/import \
 --volume=$HOME/git/nosql2023/logs:/logs \
 --volume=$HOME/git/nosql2023/plugins:/plugins \
-neo4j:5.6.0
+--volume=$HOME/git/nosql2023/scripts:/scripts \
+neo4j:5.6.0 
+
+docker exec neo4j neo4j-admin dbms set-initial-password datenbanken
 
