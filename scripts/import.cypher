@@ -1,7 +1,6 @@
 CREATE INDEX iauthor IF NOT EXISTS
 FOR (n:Author)
 ON n.name;
-     
 
 CALL apoc.load.json('file:///dblp-ref-3.json') YIELD value
 UNWIND value.authors AS author MERGE (a:Author {name:author});
@@ -45,3 +44,9 @@ CALL apoc.load.json('file:///dblp-ref-3.json') YIELD value
 MATCH (p:Publication) WHERE p.id = value.id
 MATCH (v:Venue) WHERE v.name = value.venue
 CREATE (p)-[:publishedIn]->(v);
+
+CALL apoc.load.json('file:///dblp-ref-3.json') YIELD value
+MATCH (p:Publication) WHERE p.id = value.id
+UNWIND value.references AS ref_id
+MATCH (p2:Publication) WHERE p2.id = ref_id
+CREATE (p)-[:cites]->(p2);
