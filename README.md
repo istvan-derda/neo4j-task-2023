@@ -2,18 +2,12 @@
 
 ## Setup
 
-**Setup empty neo4j database in docker container**
+- `./setup.sh` to setup neo4j in a docker container
 
-- run `./setup.sh` in the repository root
+- `./import.sh` to initialize the database with the data from the provided .json file
 
-**Import the data**
-
-- run `./import.sh` 
-
-**Reset the database**
-
-- run `./nuke.sh` to delete the neo4j container and the database
-- run `./setup.sh` to set up a clean empty neo4j database
+- `./nuke.sh` to delete the database and the neo4j container
+- `docker stop neo4j` and `docker start neo4j` to stop/start neo4j container
 
 **Interactive shell**
 
