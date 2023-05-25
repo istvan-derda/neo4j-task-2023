@@ -1,4 +1,5 @@
 mkdir -p data logs plugins
+chown $USER {data,logs,plugins}
 
 docker run -d -p 7474:7474 -p 7687:7687 \
 --name neo4j --user="$(id -u):$(id -g)" \
@@ -14,4 +15,3 @@ docker run -d -p 7474:7474 -p 7687:7687 \
 neo4j:5.6.0 
 
 docker exec neo4j neo4j-admin dbms set-initial-password datenbanken
-
