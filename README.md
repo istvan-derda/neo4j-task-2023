@@ -99,12 +99,17 @@ RETURN v.name
 **Q9** - Es gibt Autoren, die bereits zusammen Publikationen veröffentlicht  haben (Koautoren). Jeder der Autoren kann nun jeweils auch Publikationen ohne diesen Koautor veröffentlicht haben. Wenn sich diese  "unabhängigen" Publikationen zitieren, kann man das als Buddy-Citation  bezeichnen. Ermitteln Sie alle Autor-Paare, die mindestens 4 gemeinsame Publikationen veröffentlicht haben und deren unabhängige Publikationen sich mindestens in eine Richtung zitieren (A zitiert B oder B zitiert A).
 
 ```cypher
-#wip find buddies
-MATCH (a:Author)-[:authorOf]-(p:Publication)-[:authorOf]-(b:Author)
-WITH a, b, COUNT(p) AS c
-WHERE c >= 4 
-AND a.name < b.name // remove duplicate results
-RETURN a.name, b.name, c
-LIMIT 10
+MATCH (a:Author)-[:authorOf]->(p:Publication)<-[:authorOf]-(b:Author)
+WHERE a.name<b.name //no duplicates
+WITH a, b, COUNT(DISTINCT p) AS c, COLLECT(p.title) as publications
+WHERE c >= 4
+WITH a, b, publications
+MATCH buddy_citation=(a)-[:authorOf]->(pa:Publication)-[:cites]-(pb:Publication)<-[:authorOf]-(b)
+WHERE NOT pa.title IN publications
+AND NOT pb.title  IN publications
+RETURN a.name, b.name, pa.title, pb.title, publications
 ```
 
+2 pairs of authors in dataset
+
+**Q10** - Ermitteln Sie das am meisten zitierte Papier im Jahr 2016 und geben  sie alle Venues der Publikationen aus, die dieses Top-Papier zitieren,  sowie die Anzahl der Publikationen pro Venue. Sortieren Sie die Ausgabe  absteigend nach der Anzahl. Hinweis: mit dem CALL Operator können  Subqueries realisiert werden. 
