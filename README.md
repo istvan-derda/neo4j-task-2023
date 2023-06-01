@@ -107,7 +107,7 @@ WITH a, b, shared_publications
 MATCH buddy_citation=(a)-[:authorOf]->(pa:Publication)-[:cites]-(pb:Publication)<-[:authorOf]-(b)
 WHERE NOT pa.title IN shared_publications
 AND NOT pb.title  IN shared_publications
-RETURN a.name, b.name, pa.title, pb.title, publications
+RETURN a.name, b.name, pa.title, pb.title, shared_publications
 ```
 
 2 pairs of authors in dataset
@@ -169,8 +169,39 @@ RETURN COUNT(*)
 
 **Q14.1** - Löschen sie die property "n_citation" von allen Publikationen.
 
+```cypher
+MATCH (p:Publication)
+REMOVE p.n_citation
+```
+
 **Q14.2** - Alle Publikationen, die von anderen  Publikationen zitiert werden, sollen ihre tatsächliche Anzahl der  Zitierungen erhalten. Erstellen Sie eine Query, die für jede Publikation die zitierenden Publikationen zählt und eine neue Property "cite_count" anlegt, die den aggregierten Wert zugewiesen bekommt.
+
+```cypher
+MATCH (cited_p:Publication)<-[:cites]-(citing_p:Publication)
+WITH cited_p, COUNT(citing_p) AS c_count
+SET cited_p.cite_count = c_count
+```
 
 **Q14.3** - Lassen Sie sich die Top 10 Publikationen  (d.h., die mit den meisten Zitierungen) (Publikations-Id, Titel,  cite_count) ausgeben. Was fällt Ihnen auf?
 
+```cypher
+MATCH (cited_p:Publication)<-[:cites]-(citing_p:Publication)
+WITH cited_p, COUNT(citing_p) AS c_count
+RETURN cited_p, c_count
+ORDER BY c_count
+LIMIT 10
+```
+
+Note:  not using the cite_count property, because it isn't hard to count the current citation edges in the query. This query would still work on a live database, where new citations could be added continiously.
+
+Observation: 8 out of the top ten most cited papers have very short titles.
+
 **Q15** - Autoren, die zusammen eine Publikation  verfasst haben, werden als Koautoren bezeichnet. Erstellen sie zwischen  jeden Koautor-Paar eine neue Kante mit dem Label "coAuthor" und der  Property mit dem Namen "since", welche das Jahr speichert, an dem beide  Autoren die erste/früheste Publikation zusammen verfasst haben. Die  Richtung der neuen Kante spielt hierbei keine Rolle. 
+
+```cypher
+MATCH (a:Author)-[:authorOf]->(p:Publication)<-[:authorOf]-(b:Author)
+WHERE a.name<b.name //only create edge in one direction - see: https://graphaware.com/blog/neo4j/neo4j-bidirectional-relationships.html
+WITH a, b, min(p.year) AS first_collab_year
+CREATE (a)<-[:coAuthor {since: first_collab_year}]-(b)
+```
+
