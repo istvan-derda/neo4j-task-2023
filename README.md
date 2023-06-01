@@ -101,15 +101,76 @@ RETURN v.name
 ```cypher
 MATCH (a:Author)-[:authorOf]->(p:Publication)<-[:authorOf]-(b:Author)
 WHERE a.name<b.name //no duplicates
-WITH a, b, COUNT(DISTINCT p) AS c, COLLECT(p.title) as publications
+WITH a, b, COUNT(DISTINCT p) AS c, COLLECT(p.title) as shared_publications
 WHERE c >= 4
-WITH a, b, publications
+WITH a, b, shared_publications
 MATCH buddy_citation=(a)-[:authorOf]->(pa:Publication)-[:cites]-(pb:Publication)<-[:authorOf]-(b)
-WHERE NOT pa.title IN publications
-AND NOT pb.title  IN publications
+WHERE NOT pa.title IN shared_publications
+AND NOT pb.title  IN shared_publications
 RETURN a.name, b.name, pa.title, pb.title, publications
 ```
 
 2 pairs of authors in dataset
 
 **Q10** - Ermitteln Sie das am meisten zitierte Papier im Jahr 2016 und geben  sie alle Venues der Publikationen aus, die dieses Top-Papier zitieren,  sowie die Anzahl der Publikationen pro Venue. Sortieren Sie die Ausgabe  absteigend nach der Anzahl. Hinweis: mit dem CALL Operator können  Subqueries realisiert werden. 
+
+Assumption: looking for the paper, that was cited most in papers from the year 2016, not the paper from 2016 that has the most citations.
+
+```cypher
+MATCH (cited_p:Publication)<-[:cites]-(citing_p:Publication {year: 2016})
+WITH cited_p, COUNT(citing_p) AS c_count, COLLECT(citing_p) AS citing_ps
+ORDER BY c_count DESC
+LIMIT 1
+UNWIND citing_ps as citing_p
+MATCH (v:Venue)<-[:publishedIn]-(citing_p)
+RETURN v.name, COUNT(citing_p) AS c_count
+ORDER BY c_count DESC
+```
+
+Note: this returns only the venues of 10 publications, although the most cited paper was cited 20 times in 2016. Of these 20 publications only 10 have venue data though.
+
+**Q11** - Welche 5 Publikationen haben die meisten Autoren? Ausgabe der Publikation (Titel) sowie der Anzahl der Autoren.
+
+```cypher
+MATCH (p:Publication)<-[:authorOf]-(a:Author)
+RETURN p.title, COUNT(a) AS authors_count
+ORDER BY authors_count DESC
+LIMIT 5
+```
+
+Paper with most authors is "Construction and Analysis of Weighted Brain Networks from SICE for the Study of Alzheimer's Disease" with 351.
+
+On 5th place is "In Memoriam: Gunter Menz" with 44 authors.
+
+**Q12** - Welche 5 Autoren haben die meisten  Selbstzitierungen? D.h. Ein Autor hat min. zwei Publikationen A und B,  wo mindestens eine die andere zitiert. Ausgabe Autor (Name) sowie der  Anzahl der Selbstzitierungen.
+
+```cypher
+MATCH (pa:Publication)<-[:authorOf]-(a:Author)-[:authorOf]->(pb:Publication),
+(pa)-[self_citation:cites]->(pb)
+RETURN a.name, COUNT(self_citation) AS self_citation_count
+ORDER BY self_citation_count DESC
+LIMIT 5
+```
+
+First place to "Haiying Shen" with 19 self-citations.
+
+Second place has 16, and 3rd, 4th and 5th have 13 self-citations.
+
+**Q13** - Wie viele Publikationen zitieren sich (A  zitiert B oder B zitiert A), haben jedoch vollständig unterschiedliche  Autoren? Ausgabe der Anzahl von solchen Publikations-Paaren.
+
+```cypher
+MATCH (a:Author)-[:authorOf]->(pa:Publication)-[:cites]-(pb:Publication)<-[:authorOf]-(b:Author)
+WITH pa, COLLECT(a.name) AS authors_a, pb, COLLECT(b.name) as authors_b
+WHERE ALL(a IN authors_a WHERE ALL(b IN authors_b WHERE NOT a = b))
+RETURN COUNT(*)
+```
+
+2267
+
+**Q14.1** - Löschen sie die property "n_citation" von allen Publikationen.
+
+**Q14.2** - Alle Publikationen, die von anderen  Publikationen zitiert werden, sollen ihre tatsächliche Anzahl der  Zitierungen erhalten. Erstellen Sie eine Query, die für jede Publikation die zitierenden Publikationen zählt und eine neue Property "cite_count" anlegt, die den aggregierten Wert zugewiesen bekommt.
+
+**Q14.3** - Lassen Sie sich die Top 10 Publikationen  (d.h., die mit den meisten Zitierungen) (Publikations-Id, Titel,  cite_count) ausgeben. Was fällt Ihnen auf?
+
+**Q15** - Autoren, die zusammen eine Publikation  verfasst haben, werden als Koautoren bezeichnet. Erstellen sie zwischen  jeden Koautor-Paar eine neue Kante mit dem Label "coAuthor" und der  Property mit dem Namen "since", welche das Jahr speichert, an dem beide  Autoren die erste/früheste Publikation zusammen verfasst haben. Die  Richtung der neuen Kante spielt hierbei keine Rolle. 
