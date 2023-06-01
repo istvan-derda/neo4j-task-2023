@@ -2,7 +2,7 @@
 
 ## Setup
 
-- `./setup.sh` to setup neo4j in a docker container
+- `./setup.sh` to setup neo4j in a docker container (needs an internet connection)
 
 - `./import.sh` to initialize the database with the data from the provided .json file
 
