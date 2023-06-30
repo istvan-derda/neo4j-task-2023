@@ -40,10 +40,10 @@ RETURN DISTINCT b
 
 ```cypher
 MATCH (p2:Publication)-[:cites]->(p:Publication)<-[:authorOf]-(a:Author {name: "Wei Wang"})
-RETURN p.title
+RETURN p2.title
 ```
 
-6 titles
+? titles
 
 **Q4** - Ausgabe aller Venues, deren Publikationen mindestens eine im Titel das Wort "graph" und das Wort "temporal" (beide case insensitive) enthält. Neben dem duplikatfreien Venue-Namen in der ersten Spalte soll in einer zweiten Spalte auch eine duplikatfreie Liste der Publikations-Titel  ausgegeben werden, bei denen beide gesuchten Worte vorkommen.
 
@@ -80,7 +80,7 @@ RETURN COUNT(n)
 
 ```cypher
 MATCH (a:Author {name: "Charu C. Aggarwal"})-[:authorOf]->(p:Publication)-[:publishedIn]->(v:Venue)
-RETURN COLLECT(DISTINCT v.name), COLLECT(DISTINCT p.year)
+RETURN COLLECT(DISTINCT v.name), COLLECT(DISTINCT p.year) //Rückgabeformat aus Fragestellung?
 ```
 
 ["international conference on data mining", "international conference on data engineering", "web search and data mining", "IEEE Intelligent Systems"]
@@ -188,7 +188,7 @@ SET cited_p.cite_count = c_count
 MATCH (cited_p:Publication)<-[:cites]-(citing_p:Publication)
 WITH cited_p, COUNT(citing_p) AS c_count
 RETURN cited_p, c_count
-ORDER BY c_count
+ORDER BY c_count DESC
 LIMIT 10
 ```
 
